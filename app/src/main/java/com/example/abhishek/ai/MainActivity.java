@@ -5,13 +5,16 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,11 +40,13 @@ public class MainActivity extends AppCompatActivity {
     SensorEventListener mAccelerometerSensorListener;
     Button start, stop, read, clear;
     private static final String TAG = MainActivity.class.getSimpleName();
+    EditText name;
 
     FileOutputStream outputStreamWriter = null;
     File path;
     File file;
     String fileName = "";
+    String activity = "";
     boolean startFlag = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
 //        for (int i = 1; i < mList.size(); i++) {
 //            xvalue.append("\n" + mList.get(i).getName() + "\n" + mList.get(i).getVendor() + "\n" + mList.get(i).getVersion());
 //        }
-        //////////////// Setting spinner for hostels \\\\\\\\\\\\\\\\\
         ArrayAdapter<CharSequence> actionAdapter = ArrayAdapter.createFromResource(this, R.array.hostel_list, android.R.layout.simple_spinner_item);
 
         actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -68,15 +72,14 @@ public class MainActivity extends AppCompatActivity {
         action_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                fileName = parent.getItemAtPosition(position).toString().toLowerCase()+".txt";
+                activity = parent.getItemAtPosition(position).toString().toLowerCase();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                fileName = "idle.txt";
+                activity = "idle";
             }
         });
-/////////////////////////// Spinner complete \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
         mAccelerometerSensorListener= new SensorEventListener() {
             @Override
@@ -91,14 +94,14 @@ public class MainActivity extends AppCompatActivity {
                     final double alpha = 0.8;
 
                     // Isolate the force of gravity with the low-pass filter.
-                    gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
-                    gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
-                    gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
+//                    gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
+//                    gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
+//                    gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
 
                     // Remove the gravity contribution with the high-pass filter.
-                    linear_acceleration[0] = (event.values[0] - gravity[0]);
-                    linear_acceleration[1] = (event.values[1] - gravity[1]);
-                    linear_acceleration[2] = (event.values[2] - gravity[2]);
+//                    linear_acceleration[0] = (event.values[0] - gravity[0]);
+//                    linear_acceleration[1] = (event.values[1] - gravity[1]);
+//                    linear_acceleration[2] = (event.values[2] - gravity[2]);
 
                     try {
                         if (outputStreamWriter !=null)
@@ -111,9 +114,9 @@ public class MainActivity extends AppCompatActivity {
                     catch (IOException e) {
                         Log.e("Exception", "File write failed: " + e.toString());
                     }
-                    xvalue.setText(event.values[0] + "=======" + linear_acceleration[0]);
-                    yvalue.setText(event.values[1] + "=======" + linear_acceleration[1]);
-                    zvalue.setText(event.values[2] + "=======" + linear_acceleration[2]);
+                    xvalue.setText(event.values[0]+"");
+                    yvalue.setText(event.values[1]+"");
+                    zvalue.setText(event.values[2]+"");
 
                 }
 
@@ -146,11 +149,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    outputStreamWriter = openFileOutput(fileName, MODE_APPEND);
+                    fileName = activity+"_"+System.currentTimeMillis()+"_"+name.getText().toString()+".txt";
+                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS+"/AI"), fileName);
+                    file.createNewFile();
+                    outputStreamWriter = new FileOutputStream(file);
                     startFlag = true;
                 } catch (Exception e){
-                    Toast.makeText(MainActivity.this,e.toString(), Toast.LENGTH_LONG).show();
-                    Log.e(TAG,"File not found, path: "+path);
+                    Toast.makeText(MainActivity.this,"abhishek "+e.toString()+":::"+Environment.DIRECTORY_DOWNLOADS, Toast.LENGTH_LONG).show();
+                    Log.e(TAG,"File not found, path: "+Environment.DIRECTORY_DOWNLOADS);
                     path = getApplicationContext().getFilesDir();
 //                    File file = new File(path, fileName);
                 }
@@ -170,8 +176,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 path = getApplicationContext().getFilesDir();
-
-                File file = new File(path, fileName);
+                Toast.makeText(MainActivity.this, fileName, Toast.LENGTH_LONG).show();
+                File file = new File(Environment.DIRECTORY_DOWNLOADS+"/AI", fileName);
                 int length = (int) file.length();
                 byte[] bytes = new byte[length];
                 Toast.makeText(MainActivity.this,"Length: "+length, Toast.LENGTH_SHORT).show();
@@ -199,6 +205,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     private void mapping(){
@@ -211,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
         clear = (Button) findViewById(R.id.clearButton);
         action_spinner = (Spinner) findViewById(R.id.action_spinner);
         fileText = (TextView) findViewById(R.id.fileText);
+        name = (EditText) findViewById(R.id.name);
         xvalue.setText(0+" ");
         yvalue.setText(0+" ");
         zvalue.setText(0+" ");
@@ -221,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        msensorManager.registerListener(mAccelerometerSensorListener,msensor,SensorManager.SENSOR_DELAY_NORMAL);
+        msensorManager.registerListener(mAccelerometerSensorListener,msensor,SensorManager.SENSOR_DELAY_GAME);
 
     }
 

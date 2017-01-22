@@ -12,7 +12,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/action_spinner"
-        style="@style/Base.Widget.AppCompat.Spinner.Underlined">></Spinner>
+        style="@style/Base.Widget.AppCompat.Spinner.Underlined">
+
+    </Spinner>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -60,7 +62,14 @@
             android:layout_height="wrap_content"
             android:id="@+id/zvaluedisplay"
             />
+
     </LinearLayout>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:id="@+id/name"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -81,7 +90,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Read file"
-            android:id="@+id/read" />
+            android:id="@+id/read"
+            android:visibility="invisible"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
